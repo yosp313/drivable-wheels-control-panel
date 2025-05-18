@@ -39,18 +39,19 @@ const Users = () => {
     { id: 7, name: 'David Miller', email: 'david.m@example.com', status: 'inactive', registrations: 1, lastLogin: '2023-03-05 09:10 AM' },
   ];
 
+  // Fix: Properly type the columns with keyof User
   const columns = [
     {
       header: 'Name',
-      accessorKey: 'name',
+      accessorKey: 'name' as keyof User,
     },
     {
       header: 'Email',
-      accessorKey: 'email',
+      accessorKey: 'email' as keyof User,
     },
     {
       header: 'Status',
-      accessorKey: 'status',
+      accessorKey: 'status' as keyof User,
       cell: (user: User) => {
         const statusStyles = {
           active: 'bg-green-100 text-green-800',
@@ -67,11 +68,11 @@ const Users = () => {
     },
     {
       header: 'Registrations',
-      accessorKey: 'registrations',
+      accessorKey: 'registrations' as keyof User,
     },
     {
       header: 'Last Login',
-      accessorKey: 'lastLogin',
+      accessorKey: 'lastLogin' as keyof User,
     },
   ];
 

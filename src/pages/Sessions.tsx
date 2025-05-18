@@ -42,26 +42,27 @@ const Sessions = () => {
     { id: 7, name: 'Race Track Experience', type: 'Advanced', date: '2023-05-21', time: '03:30 PM', duration: '150 min', status: 'scheduled', capacity: 5, registered: 5 },
   ];
 
+  // Fix: Properly type the columns with keyof Session
   const columns = [
     {
       header: 'Name',
-      accessorKey: 'name',
+      accessorKey: 'name' as keyof Session,
     },
     {
       header: 'Type',
-      accessorKey: 'type',
+      accessorKey: 'type' as keyof Session,
     },
     {
       header: 'Date',
-      accessorKey: 'date',
+      accessorKey: 'date' as keyof Session,
     },
     {
       header: 'Time',
-      accessorKey: 'time',
+      accessorKey: 'time' as keyof Session,
     },
     {
       header: 'Status',
-      accessorKey: 'status',
+      accessorKey: 'status' as keyof Session,
       cell: (session: Session) => {
         const statusStyles = {
           'scheduled': 'bg-blue-100 text-blue-800',
@@ -83,7 +84,7 @@ const Sessions = () => {
     },
     {
       header: 'Registrations',
-      accessorKey: 'registered',
+      accessorKey: 'registered' as keyof Session,
       cell: (session: Session) => (
         <span>{session.registered} / {session.capacity}</span>
       ),

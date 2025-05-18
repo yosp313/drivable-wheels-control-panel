@@ -26,7 +26,8 @@ import {
 const Sidebar = () => {
   const { pathname } = useLocation();
   const sidebar = useSidebar();
-  const collapsed = sidebar.collapsed || false;
+  // Fix: use sidebar.state instead of sidebar.collapsed
+  const collapsed = sidebar.state === "collapsed";
 
   const getNavClass = ({ isActive }: { isActive: boolean }) => {
     return `flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${

@@ -40,22 +40,23 @@ const Registrations = () => {
     { id: 7, user: 'David Miller', session: 'Race Track Experience', date: '2023-05-21', status: 'pending', paymentStatus: 'unpaid', registeredOn: '2023-05-16' },
   ];
 
+  // Fix: Properly type the columns with keyof Registration
   const columns = [
     {
       header: 'User',
-      accessorKey: 'user',
+      accessorKey: 'user' as keyof Registration,
     },
     {
       header: 'Session',
-      accessorKey: 'session',
+      accessorKey: 'session' as keyof Registration,
     },
     {
       header: 'Date',
-      accessorKey: 'date',
+      accessorKey: 'date' as keyof Registration,
     },
     {
       header: 'Status',
-      accessorKey: 'status',
+      accessorKey: 'status' as keyof Registration,
       cell: (registration: Registration) => {
         const statusStyles = {
           'pending': 'bg-yellow-100 text-yellow-800',
@@ -73,7 +74,7 @@ const Registrations = () => {
     },
     {
       header: 'Payment',
-      accessorKey: 'paymentStatus',
+      accessorKey: 'paymentStatus' as keyof Registration,
       cell: (registration: Registration) => {
         const paymentStyles = {
           'paid': 'bg-blue-100 text-blue-800',
@@ -89,7 +90,7 @@ const Registrations = () => {
     },
     {
       header: 'Registered On',
-      accessorKey: 'registeredOn',
+      accessorKey: 'registeredOn' as keyof Registration,
     },
   ];
 

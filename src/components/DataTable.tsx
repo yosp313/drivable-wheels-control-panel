@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 
 interface Column<T> {
   header: string;
+  // Fix: making accessorKey a keyof T to ensure type safety
   accessorKey: keyof T;
   cell?: (data: T) => React.ReactNode;
 }
