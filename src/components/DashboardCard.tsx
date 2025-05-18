@@ -18,7 +18,7 @@ const DashboardCard = ({ title, value, icon, description, trend }: DashboardCard
     <Card className="card-hover-effect">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className="h-10 w-10 rounded-full bg-drivable-purple/10 flex items-center justify-center text-drivable-purple">
+        <div className="h-10 w-10 rounded-full bg-drivable-orange/10 flex items-center justify-center text-drivable-orange">
           {icon}
         </div>
       </CardHeader>

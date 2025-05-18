@@ -64,10 +64,10 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
                 drivable: {
-                    purple: {
-                        DEFAULT: '#9b87f5',
-                        light: '#e5deff', 
-                        dark: '#7E69AB'
+                    orange: {
+                        DEFAULT: '#F97316',
+                        light: '#FFF7ED', 
+                        dark: '#C2410C'
                     },
                     gray: {
                         DEFAULT: '#8E9196',

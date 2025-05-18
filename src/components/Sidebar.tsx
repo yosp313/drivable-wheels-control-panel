@@ -25,12 +25,13 @@ import {
 
 const Sidebar = () => {
   const { pathname } = useLocation();
-  const { collapsed } = useSidebar();
+  const sidebar = useSidebar();
+  const collapsed = sidebar.collapsed || false;
 
   const getNavClass = ({ isActive }: { isActive: boolean }) => {
     return `flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
       isActive 
-        ? 'bg-sidebar-accent text-drivable-purple font-medium' 
+        ? 'bg-sidebar-accent text-accent font-medium' 
         : 'hover:bg-sidebar-accent/50'
     }`;
   };
@@ -38,13 +39,13 @@ const Sidebar = () => {
   return (
     <ShadcnSidebar 
       className={`border-r border-border ${collapsed ? "w-16" : "w-64"}`}
-      collapsible
+      collapsible="icon"
     >
       <SidebarContent>
         <div className={`p-4 flex items-center justify-between ${collapsed ? 'justify-center' : ''}`}>
           {!collapsed && (
             <div className="flex items-center">
-              <span className="text-2xl font-bold text-drivable-purple">Drivable</span>
+              <span className="text-2xl font-bold text-accent">Drivable</span>
             </div>
           )}
           <SidebarTrigger>
@@ -52,7 +53,7 @@ const Sidebar = () => {
           </SidebarTrigger>
         </div>
         
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupLabel className={collapsed ? 'sr-only' : ''}>
             Main Navigation
           </SidebarGroupLabel>
