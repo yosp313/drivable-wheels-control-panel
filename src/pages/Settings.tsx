@@ -1,20 +1,23 @@
-
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
+import { useTheme } from '@/contexts/ThemeContext';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const Settings = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
   const [generalSettings, setGeneralSettings] = useState({
     siteName: 'Drivable VR',
     contactEmail: 'admin@drivablevr.com',
     enableNotifications: true,
-    darkMode: false,
     sessionReminders: true,
   });
 
@@ -24,6 +27,15 @@ const Settings = () => {
       title: 'Settings Saved',
       description: 'Your general settings have been updated.',
     });
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    toast({
+      title: 'Logged out',
+      description: 'You have been successfully logged out.',
+    });
+    navigate('/login');
   };
 
   return (
@@ -86,8 +98,8 @@ const Settings = () => {
                     <Label htmlFor="darkMode">Dark Mode</Label>
                     <Switch 
                       id="darkMode"
-                      checked={generalSettings.darkMode}
-                      onCheckedChange={(checked) => setGeneralSettings({...generalSettings, darkMode: checked})}
+                      checked={theme === 'dark'}
+                      onCheckedChange={toggleTheme}
                     />
                   </div>
                   
@@ -107,6 +119,46 @@ const Settings = () => {
           </Card>
         </TabsContent>
         
+        <TabsContent value="security" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Security Settings</CardTitle>
+              <CardDescription>
+                Manage your account security settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium">Logout</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Sign out of your account
+                  </p>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">Logout</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        You will need to login again to access your account.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleLogout}>
+                        Logout
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
         <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
@@ -117,20 +169,6 @@ const Settings = () => {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">Notification settings would go here...</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="security" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>
-                Manage your account security settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Security settings would go here...</p>
             </CardContent>
           </Card>
         </TabsContent>
