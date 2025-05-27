@@ -1,12 +1,16 @@
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import userService, { userData } from '@/api/services/UserService';
-import DataTable from '@/components/DataTable';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import userService, { userData } from "@/api/services/UserService";
+import DataTable from "@/components/DataTable";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -16,56 +20,61 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-
-
-const Users = async() => {
+const Users = () => {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [users, setUsers] = useState<userData[]>([]);
 
-  const users = await userService.getAll();
- 
-  // Fix: Properly type the columns with keyof User
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const fetchedUsers = await userService.getAll();
+        setUsers(fetchedUsers);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch users.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchUsers();
+  }, [toast]);
+
   const columns = [
     {
-      header: 'First Name' ,
-      accessorKey: 'firstName' as keyof userData,
+      header: "First Name",
+      accessorKey: "firstName" as keyof userData,
     },
     {
-      header: 'Last Name' ,
-      accessorKey: 'lastName' as keyof userData,
+      header: "Last Name",
+      accessorKey: "lastName" as keyof userData,
     },
     {
-      header: 'Email',
-      accessorKey: 'email' as keyof userData,
-    },
-    {
-      header: 'Registrations',
-      accessorKey: 'registrations' as keyof userData,
-    },
-    {
-      header: 'Last Login',
-      accessorKey: 'lastLogin' as keyof userData,
+      header: "Email",
+      accessorKey: "email" as keyof userData,
     },
   ];
 
   const handleEdit = (user: userData) => {
     toast({
-      title: 'Edit User',
+      title: "Edit User",
       description: `Editing user: ${user.firstName}`,
     });
   };
 
   const handleDelete = (user: userData) => {
     toast({
-      title: 'Delete User',
+      title: "Delete User",
       description: `User ${user.firstName} would be deleted here.`,
-      variant: 'destructive',
+      variant: "destructive",
     });
   };
 
   const handleView = (user: userData) => {
     toast({
-      title: 'View User Details',
+      title: "View User Details",
       description: `Viewing details for: ${user.firstName}`,
     });
   };
@@ -100,7 +109,7 @@ const Users = async() => {
           </DialogContent>
         </Dialog>
       </div>
-      
+
       <div className="grid gap-6">
         <Card>
           <CardHeader className="pb-3">
@@ -110,9 +119,9 @@ const Users = async() => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <DataTable 
-              columns={columns} 
-              data={users} 
+            <DataTable
+              columns={columns}
+              data={users}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onView={handleView}
@@ -125,3 +134,4 @@ const Users = async() => {
 };
 
 export default Users;
+
