@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import authService from "@/api/services/AuthService";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -34,7 +35,8 @@ const Login = () => {
     try {
       // TODO: Implement actual authentication logic here
       // For now, we'll just simulate a successful login
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      authService.Login(data.email, data.password);
       
       // Store authentication token and user data
       localStorage.setItem("isAuthenticated", "true");
