@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, ClipboardList } from 'lucide-react';
 import DataTable from '@/components/DataTable';
@@ -13,105 +13,88 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-interface Registration {
-  id: number;
-  user: string;
-  session: string;
-  date: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  paymentStatus: 'paid' | 'unpaid';
-  registeredOn: string;
-}
+import registrationService, { registrationData } from '@/api/services/RegistrationService';
 
 const Registrations = () => {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Mock registration data
-  const mockRegistrations: Registration[] = [
-    { id: 1, user: 'John Doe', session: 'Beginner VR Driving Course', date: '2023-05-20', status: 'confirmed', paymentStatus: 'paid', registeredOn: '2023-05-10' },
-    { id: 2, user: 'Jane Smith', session: 'Highway Navigation Simulation', date: '2023-05-19', status: 'pending', paymentStatus: 'unpaid', registeredOn: '2023-05-12' },
-    { id: 3, user: 'Robert Johnson', session: 'Advanced Driving Techniques', date: '2023-05-18', status: 'completed', paymentStatus: 'paid', registeredOn: '2023-05-05' },
-    { id: 4, user: 'Sarah Williams', session: 'Emergency Response Driving', date: '2023-05-22', status: 'confirmed', paymentStatus: 'paid', registeredOn: '2023-05-15' },
-    { id: 5, user: 'Michael Brown', session: 'Night Driving Simulation', date: '2023-05-17', status: 'cancelled', paymentStatus: 'paid', registeredOn: '2023-05-08' },
-    { id: 6, user: 'Emily Davis', session: 'Defensive Driving Course', date: '2023-05-25', status: 'confirmed', paymentStatus: 'unpaid', registeredOn: '2023-05-14' },
-    { id: 7, user: 'David Miller', session: 'Race Track Experience', date: '2023-05-21', status: 'pending', paymentStatus: 'unpaid', registeredOn: '2023-05-16' },
-  ];
 
-  // Fix: Properly type the columns with keyof Registration
+const [registrations, setRegistrations] = useState<registrationData[]>([]);
+
+  useEffect(() => {
+    const fetchReagistrations = async () => {
+      try {
+        const fetchedRegistrations = await registrationService.getAll();
+        console.log(fetchedRegistrations);
+        setRegistrations(fetchedRegistrations);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch users.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    fetchReagistrations();
+  }, [toast]);
+
+    // Fix: Properly type the columns with keyof Registration
   const columns = [
     {
+      header: 'RegistrationID',
+      accessorKey: 'id' as keyof registrationData,
+    },
+    {
       header: 'User',
-      accessorKey: 'user' as keyof Registration,
+      accessorKey: 'user.firstName' as keyof registrationData,
     },
     {
       header: 'Session',
-      accessorKey: 'session' as keyof Registration,
+      accessorKey: 'session.location' as keyof registrationData,
     },
     {
-      header: 'Date',
-      accessorKey: 'date' as keyof Registration,
+      header: 'Transmission Type',
+      accessorKey: 'transmissionType' as keyof registrationData,
     },
     {
-      header: 'Status',
-      accessorKey: 'status' as keyof Registration,
-      cell: (registration: Registration) => {
-        const statusStyles = {
-          'pending': 'bg-yellow-100 text-yellow-800',
-          'confirmed': 'bg-green-100 text-green-800',
-          'cancelled': 'bg-red-100 text-red-800',
-          'completed': 'bg-gray-100 text-gray-800',
-        };
-        
-        return (
-          <Badge className={`${statusStyles[registration.status]}`}>
-            {registration.status.charAt(0).toUpperCase() + registration.status.slice(1)}
-          </Badge>
-        );
-      },
+      header: 'Session Completed',
+      accessorKey: 'completed' as keyof registrationData,
     },
     {
-      header: 'Payment',
-      accessorKey: 'paymentStatus' as keyof Registration,
-      cell: (registration: Registration) => {
-        const paymentStyles = {
-          'paid': 'bg-blue-100 text-blue-800',
-          'unpaid': 'bg-orange-100 text-orange-800',
-        };
-        
-        return (
-          <Badge className={`${paymentStyles[registration.paymentStatus]}`}>
-            {registration.paymentStatus.charAt(0).toUpperCase() + registration.paymentStatus.slice(1)}
-          </Badge>
-        );
-      },
+      header: 'Score',
+      accessorKey: 'score' as keyof registrationData,
     },
     {
-      header: 'Registered On',
-      accessorKey: 'registeredOn' as keyof Registration,
+      header: 'Feedback',
+      accessorKey: 'feedback' as keyof registrationData,
+    },
+    {
+      header: 'Session paid',
+      accessorKey: 'paid' as keyof registrationData,
     },
   ];
 
-  const handleEdit = (registration: Registration) => {
+  const handleEdit = (registration: registrationData) => {
     toast({
       title: 'Edit Registration',
-      description: `Editing registration for user: ${registration.user}`,
+      description: `Editing registration for user: ${registration.user.firstName}`,
     });
   };
 
-  const handleDelete = (registration: Registration) => {
+  const handleDelete = (registration: registrationData) => {
     toast({
       title: 'Delete Registration',
-      description: `Registration for ${registration.user} would be deleted here.`,
+      description: `Registration for ${registration.user.firstName} would be deleted here.`,
       variant: 'destructive',
     });
   };
 
-  const handleView = (registration: Registration) => {
+  const handleView = (registration: registrationData) => {
     toast({
       title: 'View Registration Details',
-      description: `Viewing details for registration by: ${registration.user}`,
+      description: `Viewing details for registration by: ${registration.user.firstName}`,
     });
   };
 
@@ -157,7 +140,7 @@ const Registrations = () => {
           <CardContent>
             <DataTable 
               columns={columns} 
-              data={mockRegistrations} 
+              data={registrations} 
               onEdit={handleEdit}
               onDelete={handleDelete}
               onView={handleView}
