@@ -63,7 +63,8 @@ const [sessions, setSessions] = useState<sessionData[]>([]);
     });
   };
 
-  const handleDelete = (session: sessionData) => {
+  const handleDelete = async (session: sessionData) => {
+    await sessionService.delete(session.id);
     toast({
       title: 'Delete Session',
       description: `Session ${session.scenario.name} would be deleted here.`,

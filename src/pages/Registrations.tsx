@@ -84,6 +84,7 @@ const [registrations, setRegistrations] = useState<registrationData[]>([]);
   };
 
   const handleDelete = (registration: registrationData) => {
+    registrationService.delete;
     toast({
       title: 'Delete Registration',
       description: `Registration for ${registration.user.firstName} would be deleted here.`,

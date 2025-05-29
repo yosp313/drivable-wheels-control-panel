@@ -44,7 +44,11 @@ const sessionService = {
 
   // Delete item
   delete: async (id: number) => {
-    await api.delete(`/api/v1/admin-dashboard/Sessions/${id}`);
+    try{
+      await api.delete(`/api/v1/admin-dashboard/sessions/${id}`); 
+    }catch(e){
+      console.error(e)
+    }
   },
 };
 
