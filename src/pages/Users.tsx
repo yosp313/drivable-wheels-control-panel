@@ -40,7 +40,7 @@ const Users = () => {
     };
 
     fetchUsers();
-  }, [toast]);
+  }, [users]);
 
   const columns = [
     {
@@ -64,7 +64,8 @@ const Users = () => {
     });
   };
 
-  const handleDelete = (user: userData) => {
+  const handleDelete = async(user: userData) => {
+    await userService.delete(user.id);
     toast({
       title: "Delete User",
       description: `User ${user.firstName} would be deleted here.`,
