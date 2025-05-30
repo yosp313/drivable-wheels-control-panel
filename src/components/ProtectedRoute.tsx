@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -6,7 +7,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const location = useLocation();
-  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+  const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
     // Redirect to login page but save the attempted url

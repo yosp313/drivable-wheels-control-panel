@@ -58,6 +58,7 @@ const Users = () => {
   ];
 
   const handleEdit = (user: userData) => {
+    
     toast({
       title: "Edit User",
       description: `Editing user: ${user.firstName}`,
@@ -135,4 +136,3 @@ const Users = () => {
 };
 
 export default Users;
-

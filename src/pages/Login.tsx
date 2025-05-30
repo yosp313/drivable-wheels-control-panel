@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import authService from "@/api/services/AuthService";
+import { useAuth } from "@/contexts/AuthContext";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -19,8 +20,13 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Get the redirect path from location state, or default to "/"
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || "/";
 
   const {
     register,
@@ -33,25 +39,22 @@ const Login = () => {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      // TODO: Implement actual authentication logic here
-      // For now, we'll just simulate a successful login
-
-      authService.Login(data.email, data.password);
+      await authService.Login(data.email, data.password);
       
-      // Store authentication token and user data
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify({
+      
+      // Use the auth context to manage login state
+      login({
         email: data.email,
-        // In a real app, this would come from your backend
-        name: "Demo User",
-      }));
+        name: "Demo User", // This would typically come from your backend user profile
+      });
       
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
       
-      navigate("/");
+      // Redirect to the originally requested page
+      navigate(from, { replace: true });
     } catch (error) {
       toast({
         title: "Login failed",
