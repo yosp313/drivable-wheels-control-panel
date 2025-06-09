@@ -1,4 +1,5 @@
 import axios from 'axios';
+import authService from './services/AuthService';
 
 // Create an axios instance with default config
 const api = axios.create({
@@ -25,15 +26,39 @@ api.interceptors.request.use(
 // Add a response interceptor for handling errors
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        // Handle specific error cases here
-        if (error.response?.status === 401) {
-            // Handle unauthorized access
-            localStorage.removeItem('token');
-            // Redirect to login or show error message
+    async (error) => {
+        const originalRequest = error.config;
+
+        // Handle 401 errors (unauthorized)
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            try {
+                // Try to refresh the token
+                const newToken = await authService.refreshToken();
+                originalRequest.headers.Authorization = `Bearer ${newToken.token}`;
+                return api(originalRequest);
+            } catch (refreshError) {
+                // Refresh failed, clear tokens and redirect to login
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                localStorage.removeItem('isAuthenticated');
+                
+                // Only redirect if we're not already on the login page
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
+                return Promise.reject(refreshError);
+            }
         }
+
+        // Handle other error cases
+        if (error.response?.status >= 500) {
+            console.error('Server error:', error.response.data);
+        }
+
         return Promise.reject(error);
     }
 );
 
-export default api; 
+export default api;

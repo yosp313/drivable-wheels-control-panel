@@ -1,7 +1,7 @@
 import api from "../config";
 
 // Define types for your data
-enum Difficulty{
+export enum Difficulty{
     EASY, MEDIUM, HARD
 }
 export interface Scenario{
@@ -17,6 +17,13 @@ export interface sessionData {
     date: Date;
 }
 
+// Type for creating new sessions (without id)
+export interface CreateSessionData {
+    scenario: Omit<Scenario, 'scenarioID'> & { scenarioID?: string };
+    location: string;
+    date: string; // ISO string format for form handling
+}
+
 // Example service class/object
 const sessionService = {
   // Get all items
@@ -28,6 +35,20 @@ const sessionService = {
           "Authorization": "Bearer " + localStorage.getItem("token"),
         },
       },
+    );
+    return response.data;
+  },
+
+  // Create new session
+  create: async (data: CreateSessionData): Promise<sessionData> => {
+    const response = await api.post<sessionData>(
+      "/api/v1/admin-dashboard/sessions",
+      data,
+      {
+        headers: {
+          "Authorization": "Bearer " + localStorage.getItem("token"),
+        },
+      }
     );
     return response.data;
   },

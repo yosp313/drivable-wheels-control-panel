@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import authService from "@/api/services/AuthService";
 import { useAuth } from "@/contexts/AuthContext";
 
 const loginSchema = z.object({
@@ -39,14 +38,8 @@ const Login = () => {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      await authService.Login(data.email, data.password);
-      
-      
-      // Use the auth context to manage login state
-      login({
-        email: data.email,
-        name: "Demo User", // This would typically come from your backend user profile
-      });
+      // Use the auth context's login method which handles the API call and state management
+      await login(data.email, data.password);
       
       toast({
         title: "Login successful",
@@ -123,4 +116,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;
