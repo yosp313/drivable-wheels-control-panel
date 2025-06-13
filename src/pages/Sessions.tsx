@@ -26,7 +26,12 @@ import sessionService, { Difficulty, sessionData, CreateSessionData } from '@/ap
 // Schema for session creation form
 const createSessionSchema = z.object({
   location: z.string().min(1, "Location is required"),
-  date: z.string().min(1, "Date is required"),
+  date: z.string()
+    .min(1, "Date is required")
+    .refine((date) => {
+      const parsedDate = new Date(date);
+      return !isNaN(parsedDate.getTime());
+    }, "Invalid date format"),
   scenarioName: z.string().min(1, "Scenario name is required"),
   environmentType: z.string().min(1, "Environment type is required"),
   difficulty: z.nativeEnum(Difficulty),
@@ -66,11 +71,17 @@ const Sessions = () => {
     const fetchSessions = async () => {
       try {
         const fetchedSessions = await sessionService.getAll();
-        setSessions(fetchedSessions);
+        // Convert string dates to Date objects
+        const sessionsWithDates = fetchedSessions.map(session => ({
+          ...session,
+          date: new Date(session.date)
+        }));
+        setSessions(sessionsWithDates);
       } catch (error) {
+        console.error('Error fetching sessions:', error);
         toast({
           title: "Error",
-          description: "Failed to fetch sessions.",
+          description: error instanceof Error ? error.message : "Failed to fetch sessions.",
           variant: "destructive",
         });
       }
@@ -96,7 +107,12 @@ const Sessions = () => {
       };
 
       const newSession = await sessionService.create(createData);
-      setSessions(prev => [...prev, newSession]);
+      // Convert the date string to a Date object
+      const sessionWithDate = {
+        ...newSession,
+        date: new Date(newSession.date)
+      };
+      setSessions(prev => [...prev, sessionWithDate]);
       
       toast({
         title: "Session Created",
@@ -106,9 +122,10 @@ const Sessions = () => {
       setIsCreateDialogOpen(false);
       reset();
     } catch (error) {
+      console.error('Error creating session:', error);
       toast({
         title: "Error",
-        description: "Failed to create session. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to create session. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -194,12 +211,12 @@ const Sessions = () => {
       toast({
         title: 'Session Deleted',
         description: `Session "${session.scenario.name}" has been deleted.`,
-        variant: 'destructive',
       });
     } catch (error) {
+      console.error('Error deleting session:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete session.',
+        description: error instanceof Error ? error.message : 'Failed to delete session.',
         variant: 'destructive',
       });
     }

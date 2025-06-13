@@ -24,13 +24,20 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const userSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  Password: z.string().min(8, "Password must be at least 8 characters"),
-  transmission: z.string().min(1, "Transmission is required"),
+  firstName: z.string().min(2, "First name must be at least 2 characters").max(50, "First name must be less than 50 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters").max(50, "Last name must be less than 50 characters"),
+  email: z.string().email("Invalid email address").min(5, "Email must be at least 5 characters").max(100, "Email must be less than 100 characters"),
+  Password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100, "Password must be less than 100 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+  transmission: z.string().min(1, "Transmission type is required"),
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -44,8 +51,9 @@ const Users = () => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
+    reset,
+    setValue,
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
   });
@@ -65,7 +73,7 @@ const Users = () => {
     };
 
     fetchUsers();
-  }, []);
+  }, [toast]);
 
   const onSubmit = async (data: UserFormData) => {
     try {
@@ -88,7 +96,7 @@ const Users = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create user",
+        description: "Failed to create user. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -146,11 +154,11 @@ const Users = () => {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="bg-drivable-purple hover:bg-drivable-purple/90">
               <Plus className="mr-2 h-4 w-4" /> Add User
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Add New User</DialogTitle>
               <DialogDescription>
@@ -158,28 +166,30 @@ const Users = () => {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  {...register("firstName")}
-                  placeholder="Enter first name"
-                />
-                {errors.firstName && (
-                  <p className="text-sm text-red-500">{errors.firstName.message}</p>
-                )}
-              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    {...register("firstName")}
+                    placeholder="Enter first name"
+                  />
+                  {errors.firstName && (
+                    <p className="text-sm text-red-500">{errors.firstName.message}</p>
+                  )}
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  {...register("lastName")}
-                  placeholder="Enter last name"
-                />
-                {errors.lastName && (
-                  <p className="text-sm text-red-500">{errors.lastName.message}</p>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    {...register("lastName")}
+                    placeholder="Enter last name"
+                  />
+                  {errors.lastName && (
+                    <p className="text-sm text-red-500">{errors.lastName.message}</p>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -209,20 +219,41 @@ const Users = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="transmission">Transmission</Label>
-                <Input
-                  id="transmission"
-                  {...register("transmission")}
-                  placeholder="Enter transmission"
-                />
+                <Label htmlFor="transmission">Transmission Type</Label>
+                <Select onValueChange={(value) => setValue("transmission", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select transmission type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Automatic">Automatic</SelectItem>
+                    <SelectItem value="Manual">Manual</SelectItem>
+                    <SelectItem value="Both">Both</SelectItem>
+                  </SelectContent>
+                </Select>
                 {errors.transmission && (
                   <p className="text-sm text-red-500">{errors.transmission.message}</p>
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create User"}
-              </Button>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="bg-drivable-purple hover:bg-drivable-purple/90"
+                >
+                  {isSubmitting ? "Creating..." : "Create User"}
+                </Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>

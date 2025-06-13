@@ -1,27 +1,39 @@
 import api from "../config";
 
 // Define types for your data
-export enum Difficulty{
+export enum Difficulty {
     EASY, MEDIUM, HARD
 }
-export interface Scenario{
+
+export interface Scenario {
     scenarioID: string;
     name: string;
     environmentType: string;
     difficulty: Difficulty;
 }
+
 export interface sessionData {
     id: number;
     scenario: Scenario;
     location: string;
     date: Date;
+    description?: string;
+    maxParticipants: number;
+    duration: number;
 }
 
 // Type for creating new sessions (without id)
 export interface CreateSessionData {
-    scenario: Omit<Scenario, 'scenarioID'> & { scenarioID?: string };
+    scenario: {
+        name: string;
+        environmentType: string;
+        difficulty: Difficulty;
+    };
     location: string;
     date: string; // ISO string format for form handling
+    description?: string;
+    maxParticipants: number;
+    duration: number;
 }
 
 // Example service class/object
@@ -54,22 +66,26 @@ const sessionService = {
   },
 
   // Update existing item
-  update: async (id: number, data: Partial<sessionData>) => {
+  update: async (id: number, data: Partial<CreateSessionData>) => {
     const response = await api.put<sessionData>(
-      `/api/v1/admin-dashboard/sessions/name/${id}`,
+      `/api/v1/admin-dashboard/sessions/${id}`,
       data,
+      {
+        headers: {
+          "Authorization": "Bearer " + localStorage.getItem("token"),
+        },
+      }
     );
     return response.data;
   },
 
-
   // Delete item
-  delete: async (id: number) => {
-    try{
-      await api.delete(`/api/v1/admin-dashboard/sessions/${id}`); 
-    }catch(e){
-      console.error(e)
-    }
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`/api/v1/admin-dashboard/sessions/${id}`, {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token"),
+      },
+    });
   },
 };
 
