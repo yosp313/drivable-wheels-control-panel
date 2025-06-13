@@ -25,6 +25,20 @@ const userService = {
     return response.data;
   },
 
+  // Create new user
+  create: async (userData: Omit<userData, 'id'>) => {
+    const response = await api.post<userData>(
+      "/api/v1/admin-dashboard/users",
+      userData,
+      {
+        headers: {
+          "Authorization": "Bearer " + localStorage.getItem("token"),
+        },
+      }
+    );
+    return response.data;
+  },
+
   // Get single item by ID
   getById: async (id: number) => {
     const response = await api.get<userData>(

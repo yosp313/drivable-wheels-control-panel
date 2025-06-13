@@ -19,11 +19,36 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const userSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  Password: z.string().min(8, "Password must be at least 8 characters"),
+  transmission: z.string().min(1, "Transmission is required"),
+});
+
+type UserFormData = z.infer<typeof userSchema>;
 
 const Users = () => {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [users, setUsers] = useState<userData[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<UserFormData>({
+    resolver: zodResolver(userSchema),
+  });
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -40,7 +65,36 @@ const Users = () => {
     };
 
     fetchUsers();
-  }, [users]);
+  }, []);
+
+  const onSubmit = async (data: UserFormData) => {
+    try {
+      setIsSubmitting(true);
+      const userData: Omit<userData, 'id'> = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        Password: data.Password,
+        transmission: data.transmission,
+      };
+      const newUser = await userService.create(userData);
+      setUsers((prevUsers) => [...prevUsers, newUser]);
+      toast({
+        title: "Success",
+        description: "User created successfully",
+      });
+      setIsDialogOpen(false);
+      reset();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create user",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const columns = [
     {
@@ -103,11 +157,73 @@ const Users = () => {
                 Create a new user account in the system
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <p className="text-sm text-gray-500">
-                User creation form would go here...
-              </p>
-            </div>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  {...register("firstName")}
+                  placeholder="Enter first name"
+                />
+                {errors.firstName && (
+                  <p className="text-sm text-red-500">{errors.firstName.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  {...register("lastName")}
+                  placeholder="Enter last name"
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-red-500">{errors.lastName.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  {...register("email")}
+                  placeholder="Enter email"
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  {...register("Password")}
+                  placeholder="Enter password"
+                />
+                {errors.Password && (
+                  <p className="text-sm text-red-500">{errors.Password.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="transmission">Transmission</Label>
+                <Input
+                  id="transmission"
+                  {...register("transmission")}
+                  placeholder="Enter transmission"
+                />
+                {errors.transmission && (
+                  <p className="text-sm text-red-500">{errors.transmission.message}</p>
+                )}
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create User"}
+              </Button>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
