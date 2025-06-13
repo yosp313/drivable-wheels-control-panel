@@ -1,26 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, ClipboardList } from 'lucide-react';
 import DataTable from '@/components/DataTable';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import registrationService, { registrationData } from '@/api/services/RegistrationService';
 
 const Registrations = () => {
   const { toast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
-
-const [registrations, setRegistrations] = useState<registrationData[]>([]);
+  const [registrations, setRegistrations] = useState<registrationData[]>([]);
 
   useEffect(() => {
     const fetchReagistrations = async () => {
@@ -40,7 +27,6 @@ const [registrations, setRegistrations] = useState<registrationData[]>([]);
     fetchReagistrations();
   }, [toast]);
 
-    // Fix: Properly type the columns with keyof Registration
   const columns = [
     {
       header: 'RegistrationID',
@@ -108,26 +94,6 @@ const [registrations, setRegistrations] = useState<registrationData[]>([]);
             Manage VR driving session registrations
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <ClipboardList className="mr-2 h-4 w-4" /> New Registration
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Registration</DialogTitle>
-              <DialogDescription>
-                Register a user for a VR driving session
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <p className="text-sm text-gray-500">
-                Registration form would go here...
-              </p>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
       
       <div className="grid gap-6">

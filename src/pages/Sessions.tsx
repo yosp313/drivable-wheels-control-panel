@@ -32,12 +32,7 @@ const createSessionSchema = z.object({
       const parsedDate = new Date(date);
       return !isNaN(parsedDate.getTime());
     }, "Invalid date format"),
-  scenarioName: z.string().min(1, "Scenario name is required"),
-  environmentType: z.string().min(1, "Environment type is required"),
-  difficulty: z.nativeEnum(Difficulty),
-  description: z.string().optional(),
-  maxParticipants: z.number().min(1, "Must have at least 1 participant").max(20, "Maximum 20 participants"),
-  duration: z.number().min(15, "Minimum 15 minutes").max(180, "Maximum 3 hours"),
+  scenarioID: z.string().min(1, "Scenario ID is required"),
 });
 
 type CreateSessionFormData = z.infer<typeof createSessionSchema>;
@@ -55,17 +50,13 @@ const Sessions = () => {
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
     reset,
   } = useForm<CreateSessionFormData>({
     resolver: zodResolver(createSessionSchema),
     defaultValues: {
       maxParticipants: 5,
-      duration: 45,
     }
   });
-
-  const difficulty = watch("difficulty");
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -91,22 +82,22 @@ const Sessions = () => {
   }, [toast]);
 
   const onSubmit = async (data: CreateSessionFormData) => {
+    console.log('Form submitted with data:', data);
     setIsLoading(true);
     try {
+      // Convert date to ISO string
+      const isoDate = new Date(data.date).toISOString();
+
       const createData: CreateSessionData = {
         location: data.location,
-        date: data.date,
-        scenario: {
-          name: data.scenarioName,
-          environmentType: data.environmentType,
-          difficulty: data.difficulty,
-        },
-        description: data.description,
-        maxParticipants: data.maxParticipants,
-        duration: data.duration,
+        date: isoDate,
+        scenarioID: data.scenarioID,
       };
+      console.log('Sending create request with data:', createData);
 
       const newSession = await sessionService.create(createData);
+      console.log('API response:', newSession);
+      
       // Convert the date string to a Date object
       const sessionWithDate = {
         ...newSession,
@@ -116,7 +107,7 @@ const Sessions = () => {
       
       toast({
         title: "Session Created",
-        description: `New session "${data.scenarioName}" has been scheduled successfully.`,
+        description: "New session has been scheduled successfully.",
       });
       
       setIsCreateDialogOpen(false);
@@ -238,7 +229,7 @@ const Sessions = () => {
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-drivable-purple hover:bg-drivable-purple/90">
+            <Button className="bg-orange-500 hover:bg-orange-600">
               <Plus className="mr-2 h-4 w-4" /> Add New Session
             </Button>
           </DialogTrigger>
@@ -246,7 +237,7 @@ const Sessions = () => {
             <DialogHeader>
               <DialogTitle>Create New VR Session</DialogTitle>
               <DialogDescription>
-                Schedule a new VR driving session with detailed scenario configuration
+                Schedule a new VR driving session
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 py-4">
@@ -283,127 +274,34 @@ const Sessions = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="scenarioName">Scenario Name</Label>
+                <Label htmlFor="scenarioID">Scenario ID</Label>
                 <Input
-                  id="scenarioName"
-                  placeholder="e.g., Highway Night Driving Challenge"
-                  {...register("scenarioName")}
+                  id="scenarioID"
+                  placeholder="Enter scenario ID"
+                  {...register("scenarioID")}
                 />
-                {errors.scenarioName && (
-                  <p className="text-sm text-red-500">{errors.scenarioName.message}</p>
+                {errors.scenarioID && (
+                  <p className="text-sm text-red-500">{errors.scenarioID.message}</p>
                 )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="environmentType">Environment Type</Label>
-                  <Select onValueChange={(value) => setValue("environmentType", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select environment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Urban">Urban City</SelectItem>
-                      <SelectItem value="Highway">Highway/Freeway</SelectItem>
-                      <SelectItem value="Rural">Rural Roads</SelectItem>
-                      <SelectItem value="Mountain">Mountain Terrain</SelectItem>
-                      <SelectItem value="Parking">Parking Lot</SelectItem>
-                      <SelectItem value="Night">Night Driving</SelectItem>
-                      <SelectItem value="Weather">Adverse Weather</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.environmentType && (
-                    <p className="text-sm text-red-500">{errors.environmentType.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="difficulty">Difficulty Level</Label>
-                  <Select 
-                    value={difficulty?.toString()} 
-                    onValueChange={(value) => setValue("difficulty", parseInt(value) as Difficulty)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select difficulty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={Difficulty.EASY.toString()}>
-                        <div className="flex items-center">
-                          <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                          Easy - Beginner Friendly
-                        </div>
-                      </SelectItem>
-                      <SelectItem value={Difficulty.MEDIUM.toString()}>
-                        <div className="flex items-center">
-                          <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
-                          Medium - Intermediate
-                        </div>
-                      </SelectItem>
-                      <SelectItem value={Difficulty.HARD.toString()}>
-                        <div className="flex items-center">
-                          <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
-                          Hard - Advanced
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.difficulty && (
-                    <p className="text-sm text-red-500">{errors.difficulty.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="maxParticipants">
-                    <Users className="inline w-4 h-4 mr-1" />
-                    Max Participants
-                  </Label>
-                  <Input
-                    id="maxParticipants"
-                    type="number"
-                    min="1"
-                    max="20"
-                    {...register("maxParticipants", { valueAsNumber: true })}
-                  />
-                  {errors.maxParticipants && (
-                    <p className="text-sm text-red-500">{errors.maxParticipants.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Duration (minutes)</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="15"
-                    max="180"
-                    {...register("duration", { valueAsNumber: true })}
-                  />
-                  {errors.duration && (
-                    <p className="text-sm text-red-500">{errors.duration.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Add any additional details about this session..."
-                  rows={3}
-                  {...register("description")}
-                />
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => setIsCreateDialogOpen(false)}
+                  onClick={() => {
+                    setIsCreateDialogOpen(false);
+                    reset();
+                  }}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading} className="bg-drivable-purple hover:bg-drivable-purple/90">
+                <Button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="bg-orange-500 hover:bg-orange-600"
+                  onClick={() => console.log('Submit button clicked')}
+                >
                   {isLoading ? "Creating..." : "Create Session"}
                 </Button>
               </div>
@@ -458,7 +356,6 @@ const Sessions = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Max Participants:</span>
-                      <span className="font-medium">{selectedSession.maxParticipants || 5}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -507,7 +404,7 @@ const Sessions = () => {
                     setIsViewDialogOpen(false);
                     handleEdit(selectedSession);
                   }}
-                  className="bg-drivable-purple hover:bg-drivable-purple/90"
+                  className="bg-orange-500 hover:bg-orange-600"
                 >
                   Edit Session
                 </Button>

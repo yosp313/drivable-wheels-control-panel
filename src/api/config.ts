@@ -39,13 +39,12 @@ api.interceptors.response.use(
                 originalRequest.headers.Authorization = `Bearer ${newToken.token}`;
                 return api(originalRequest);
             } catch (refreshError) {
-                // Refresh failed, clear tokens and redirect to login
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                localStorage.removeItem('isAuthenticated');
-                
-                // Only redirect if we're not already on the login page
-                if (window.location.pathname !== '/login') {
+                // Only clear tokens and redirect if we're not already on the login page
+                // and if the error is specifically an authentication error
+                if (window.location.pathname !== '/login' && 
+                    (refreshError.response?.status === 401 || refreshError.response?.status === 403)) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
                     window.location.href = '/login';
                 }
                 return Promise.reject(refreshError);

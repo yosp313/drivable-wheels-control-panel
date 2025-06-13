@@ -18,22 +18,14 @@ export interface sessionData {
     location: string;
     date: Date;
     description?: string;
-    maxParticipants: number;
     duration: number;
 }
 
 // Type for creating new sessions (without id)
 export interface CreateSessionData {
-    scenario: {
-        name: string;
-        environmentType: string;
-        difficulty: Difficulty;
-    };
+    scenarioID: string;
     location: string;
     date: string; // ISO string format for form handling
-    description?: string;
-    maxParticipants: number;
-    duration: number;
 }
 
 // Example service class/object
@@ -53,6 +45,9 @@ const sessionService = {
 
   // Create new session
   create: async (data: CreateSessionData): Promise<sessionData> => {
+    console.log('Creating session with data:', data);
+    console.log('Token:', localStorage.getItem('token'));
+    
     const response = await api.post<sessionData>(
       "/api/v1/admin-dashboard/sessions",
       data,
@@ -62,6 +57,7 @@ const sessionService = {
         },
       }
     );
+    console.log('Create session response:', response.data);
     return response.data;
   },
 

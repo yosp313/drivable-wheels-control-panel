@@ -22,7 +22,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Restore user and isAuthenticated from localStorage for instant UI feedback
   const [user, setUser] = useState<User | null>(() => {
     const storedUser = localStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
@@ -35,7 +34,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     checkAuth();
-    // eslint-disable-next-line
   }, []);
 
   const checkAuth = async () => {
@@ -48,22 +46,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
         return;
       }
-      // Try to get current user from API
-      const userData = await authService.getCurrentUser();
-      const userWithName = {
-        ...userData,
-        name: `${userData.firstName} ${userData.lastName}`.trim()
-      };
-      setUser(userWithName);
-      setIsAuthenticated(true);
-      localStorage.setItem('user', JSON.stringify(userWithName));
+
+      try {
+        // Try to get current user from API
+        const userData = await authService.getCurrentUser();
+        const userWithName = {
+          ...userData,
+          name: `${userData.firstName} ${userData.lastName}`.trim()
+        };
+        setUser(userWithName);
+        setIsAuthenticated(true);
+        localStorage.setItem('user', JSON.stringify(userWithName));
+      } catch (error) {
+        // If API call fails but we have a token, keep the user logged in
+        // This prevents unnecessary redirects on network issues
+        console.warn('Failed to fetch user data, but keeping session:', error);
+        setIsAuthenticated(true);
+      }
     } catch (error) {
       console.error('Auth check failed:', error);
-      // Clear invalid token
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setUser(null);
-      setIsAuthenticated(false);
+      // Only clear auth data if token is invalid
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     } finally {
       setIsLoading(false);
     }
