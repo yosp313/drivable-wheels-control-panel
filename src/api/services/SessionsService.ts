@@ -23,9 +23,10 @@ export interface sessionData {
 
 // Type for creating new sessions (without id)
 export interface CreateSessionData {
-    scenarioID: string;
+    scenarioId: string;
     location: string;
     date: string; // ISO string format for form handling
+    maxParticipants: number;
 }
 
 // Example service class/object

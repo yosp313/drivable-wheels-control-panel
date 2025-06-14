@@ -32,7 +32,8 @@ const createSessionSchema = z.object({
       const parsedDate = new Date(date);
       return !isNaN(parsedDate.getTime());
     }, "Invalid date format"),
-  scenarioID: z.string().min(1, "Scenario ID is required"),
+  scenarioId: z.string().min(1, "Scenario ID is required"),
+  maxParticipants: z.number().min(1, "Max participants must be at least 1"),
 });
 
 type CreateSessionFormData = z.infer<typeof createSessionSchema>;
@@ -54,31 +55,31 @@ const Sessions = () => {
   } = useForm<CreateSessionFormData>({
     resolver: zodResolver(createSessionSchema),
     defaultValues: {
-      maxParticipants: 5,
+      maxParticipants: 4,
     }
   });
 
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        const fetchedSessions = await sessionService.getAll();
-        // Convert string dates to Date objects
-        const sessionsWithDates = fetchedSessions.map(session => ({
-          ...session,
-          date: new Date(session.date)
-        }));
-        setSessions(sessionsWithDates);
-      } catch (error) {
-        console.error('Error fetching sessions:', error);
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to fetch sessions.",
-          variant: "destructive",
-        });
-      }
-    };
+  const refreshSessions = async () => {
+    try {
+      const fetchedSessions = await sessionService.getAll();
+      // Convert string dates to Date objects
+      const sessionsWithDates = fetchedSessions.map(session => ({
+        ...session,
+        date: new Date(session.date)
+      }));
+      setSessions(sessionsWithDates);
+    } catch (error) {
+      console.error('Error fetching sessions:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to fetch sessions.",
+        variant: "destructive",
+      });
+    }
+  };
 
-    fetchSessions();
+  useEffect(() => {
+    refreshSessions();
   }, [toast]);
 
   const onSubmit = async (data: CreateSessionFormData) => {
@@ -91,19 +92,12 @@ const Sessions = () => {
       const createData: CreateSessionData = {
         location: data.location,
         date: isoDate,
-        scenarioID: data.scenarioID,
+        scenarioId: data.scenarioId,
+        maxParticipants: data.maxParticipants,
       };
       console.log('Sending create request with data:', createData);
 
-      const newSession = await sessionService.create(createData);
-      console.log('API response:', newSession);
-      
-      // Convert the date string to a Date object
-      const sessionWithDate = {
-        ...newSession,
-        date: new Date(newSession.date)
-      };
-      setSessions(prev => [...prev, sessionWithDate]);
+      await sessionService.create(createData);
       
       toast({
         title: "Session Created",
@@ -112,6 +106,8 @@ const Sessions = () => {
       
       setIsCreateDialogOpen(false);
       reset();
+      // Refresh sessions after creation
+      await refreshSessions();
     } catch (error) {
       console.error('Error creating session:', error);
       toast({
@@ -188,17 +184,30 @@ const Sessions = () => {
     },
   ];
 
-  const handleEdit = (session: sessionData) => {
-    toast({
-      title: 'Edit Session',
-      description: `Editing session: ${session.scenario.name}`,
-    });
+  const handleEdit = async (session: sessionData) => {
+    try {
+      // Assuming you have an edit dialog or form
+      // After successful edit:
+      await refreshSessions();
+      toast({
+        title: 'Session Updated',
+        description: `Session "${session.scenario.name}" has been updated successfully.`,
+      });
+    } catch (error) {
+      console.error('Error updating session:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update session.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDelete = async (session: sessionData) => {
     try {
       await sessionService.delete(session.id);
-      setSessions(prev => prev.filter(s => s.id !== session.id));
+      // Refresh sessions after deletion
+      await refreshSessions();
       toast({
         title: 'Session Deleted',
         description: `Session "${session.scenario.name}" has been deleted.`,
@@ -274,14 +283,26 @@ const Sessions = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="scenarioID">Scenario ID</Label>
+                <Label htmlFor="scenarioId">Scenario ID</Label>
                 <Input
-                  id="scenarioID"
+                  id="scenarioId"
                   placeholder="Enter scenario ID"
-                  {...register("scenarioID")}
+                  {...register("scenarioId")}
                 />
-                {errors.scenarioID && (
-                  <p className="text-sm text-red-500">{errors.scenarioID.message}</p>
+                {errors.scenarioId && (
+                  <p className="text-sm text-red-500">{errors.scenarioId.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="maxParticipants">Max Participants</Label>
+                <Input
+                  id="maxParticipants"
+                  type="number"
+                  {...register("maxParticipants")}
+                />
+                {errors.maxParticipants && (
+                  <p className="text-sm text-red-500">{errors.maxParticipants.message}</p>
                 )}
               </div>
 

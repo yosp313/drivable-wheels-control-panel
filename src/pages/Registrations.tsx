@@ -4,10 +4,21 @@ import DataTable from '@/components/DataTable';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import registrationService, { registrationData } from '@/api/services/RegistrationService';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from '@/components/ui/badge';
+import { Calendar, MapPin, User, Car, CheckCircle, XCircle, Star, CreditCard } from 'lucide-react';
 
 const Registrations = () => {
   const { toast } = useToast();
   const [registrations, setRegistrations] = useState<registrationData[]>([]);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedRegistration, setSelectedRegistration] = useState<registrationData | null>(null);
 
   useEffect(() => {
     const fetchReagistrations = async () => {
@@ -25,7 +36,7 @@ const Registrations = () => {
     };
 
     fetchReagistrations();
-  }, [toast]);
+  }, [registrations]);
 
   const columns = [
     {
@@ -79,9 +90,17 @@ const Registrations = () => {
   };
 
   const handleView = (registration: registrationData) => {
-    toast({
-      title: 'View Registration Details',
-      description: `Viewing details for registration by: ${registration.user.firstName}`,
+    setSelectedRegistration(registration);
+    setIsViewDialogOpen(true);
+  };
+
+  const formatDate = (date: Date | string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -96,6 +115,151 @@ const Registrations = () => {
         </div>
       </div>
       
+      {/* View Details Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Registration Details
+            </DialogTitle>
+            <DialogDescription>
+              Complete information about this registration
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedRegistration && (
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      User Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Name:</span>
+                      <span className="font-medium">
+                        {selectedRegistration.user.firstName} {selectedRegistration.user.lastName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Email:</span>
+                      <span className="font-medium">{selectedRegistration.user.email}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Session Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Location:</span>
+                      <span className="font-medium">{selectedRegistration.session.location}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Date:</span>
+                      <span className="font-medium">{formatDate(selectedRegistration.session.date)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Scenario:</span>
+                      <span className="font-medium">{selectedRegistration.session.scenario.name}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Car className="h-4 w-4" />
+                    Registration Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Transmission Type:</span>
+                    <Badge variant="secondary">
+                      {selectedRegistration.transmissionType}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Session Status:</span>
+                    {selectedRegistration.completed ? (
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Completed
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Pending
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Payment Status:</span>
+                    {selectedRegistration.paid ? (
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <CreditCard className="h-4 w-4 mr-1" />
+                        Paid
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="bg-red-100 text-red-800">
+                        <CreditCard className="h-4 w-4 mr-1" />
+                        Unpaid
+                      </Badge>
+                    )}
+                  </div>
+                  {selectedRegistration.score > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Score:</span>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        <Star className="h-4 w-4 mr-1" />
+                        {selectedRegistration.score}
+                      </Badge>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {selectedRegistration.feedback && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Feedback</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">{selectedRegistration.feedback}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                  Close
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setIsViewDialogOpen(false);
+                    handleEdit(selectedRegistration);
+                  }}
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  Edit Registration
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <div className="grid gap-6">
         <Card>
           <CardHeader className="pb-3">

@@ -7,7 +7,6 @@ export interface userData {
   Password: string;
   firstName: string;
   lastName: string;
-  transmission: string; // Add other fields as needed
 }
 
 // Example service class/object

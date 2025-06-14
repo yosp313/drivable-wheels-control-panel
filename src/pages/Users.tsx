@@ -10,10 +10,21 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { User, Mail, Car } from "lucide-react";
 
 const Users = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<userData[]>([]);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<userData | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -64,10 +75,8 @@ const Users = () => {
   };
 
   const handleView = (user: userData) => {
-    toast({
-      title: "View User Details",
-      description: `Viewing details for: ${user.firstName}`,
-    });
+    setSelectedUser(user);
+    setIsViewDialogOpen(true);
   };
 
   return (
@@ -80,6 +89,63 @@ const Users = () => {
           </p>
         </div>
       </div>
+
+      {/* View Details Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              User Details
+            </DialogTitle>
+            <DialogDescription>
+              Complete information about this user
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedUser && (
+            <div className="space-y-6 py-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Personal Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">First Name:</span>
+                    <span className="font-medium">{selectedUser.firstName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Last Name:</span>
+                    <span className="font-medium">{selectedUser.lastName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Email:</span>
+                    <span className="font-medium">{selectedUser.email}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                  Close
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setIsViewDialogOpen(false);
+                    handleEdit(selectedUser);
+                  }}
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  Edit User
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-6">
         <Card>
